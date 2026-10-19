@@ -235,8 +235,8 @@ async function getRequestById(req, res, next) {
 
     const request = reqResult.recordset[0];
 
-    // Check authorization: standard users can only view their own requests
-    if (req.user && req.user.role === 'user' && request.userId !== req.user.id) {
+    // Check authorization: standard citizens can only view their own requests
+    if (req.user && (req.user.role === 'user' || req.user.role === 'citizen') && request.userId !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. You can only view your own pickup requests.'
@@ -526,8 +526,8 @@ async function cancelRequest(req, res, next) {
 
     const current = check.recordset[0];
 
-    // Standard user can only cancel their own pending request
-    if (req.user.role === 'user') {
+    // Standard citizen can only cancel their own pending request
+    if (req.user.role === 'user' || req.user.role === 'citizen') {
       if (current.userId !== req.user.id) {
         return res.status(403).json({
           success: false,

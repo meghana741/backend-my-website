@@ -197,16 +197,16 @@ export const EwasteProvider = ({ children }) => {
   }, [token, currentUser, fetchRequests, fetchNotifications]);
 
   // --- Auth Actions ---
-  const login = async (email, password) => {
+  const adminLogin = async (email, password) => {
     setLoading(true);
     try {
-      const res = await authAPI.login(email, password);
+      const res = await authAPI.adminLogin(email, password);
       if (res.user && res.token) {
         setCurrentUser(res.user);
         setToken(res.token);
         addToast({
           type: 'success',
-          title: 'Welcome back!',
+          title: 'Welcome Admin!',
           message: \`Logged in as \${res.user.name}\`,
           timeout: 3000
         });
@@ -215,7 +215,35 @@ export const EwasteProvider = ({ children }) => {
     } catch (err) {
       addToast({
         type: 'error',
-        title: 'Login failed',
+        title: 'Admin login failed',
+        message: err.message || 'Invalid admin credentials.',
+        timeout: 5000
+      });
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const citizenLogin = async (email, password) => {
+    setLoading(true);
+    try {
+      const res = await authAPI.citizenLogin(email, password);
+      if (res.user && res.token) {
+        setCurrentUser(res.user);
+        setToken(res.token);
+        addToast({
+          type: 'success',
+          title: 'Welcome Citizen!',
+          message: \`Logged in as \${res.user.name}\`,
+          timeout: 3000
+        });
+        return { success: true, user: res.user };
+      }
+    } catch (err) {
+      addToast({
+        type: 'error',
+        title: 'Citizen login failed',
         message: err.message || 'Invalid email or password.',
         timeout: 5000
       });
@@ -225,16 +253,16 @@ export const EwasteProvider = ({ children }) => {
     }
   };
 
-  const register = async (userData) => {
+  const citizenRegister = async (userData) => {
     setLoading(true);
     try {
-      const res = await authAPI.register(userData);
+      const res = await authAPI.citizenRegister(userData);
       if (res.user && res.token) {
         setCurrentUser(res.user);
         setToken(res.token);
         addToast({
           type: 'success',
-          title: 'Account created!',
+          title: 'Citizen account created!',
           message: \`Welcome to EcoCycle, \${res.user.name}!\`,
           timeout: 4000
         });
@@ -244,13 +272,24 @@ export const EwasteProvider = ({ children }) => {
       addToast({
         type: 'error',
         title: 'Registration failed',
-        message: err.message || 'Could not create account.',
+        message: err.message || 'Could not create citizen account.',
         timeout: 5000
       });
       throw err;
     } finally {
       setLoading(false);
     }
+  };
+
+  const login = async (email, password, portalType = null) => {
+    if (portalType === 'admin' || email === 'admin@ecocycle.com') {
+      return adminLogin(email, password);
+    }
+    return citizenLogin(email, password);
+  };
+
+  const register = async (userData) => {
+    return citizenRegister(userData);
   };
 
   const logout = () => {
@@ -407,13 +446,13 @@ export const EwasteProvider = ({ children }) => {
   // Demo Switch User Role (for testing Admin vs Citizen without re-typing)
   const switchUserRole = async (targetRole) => {
     const demoAccounts = {
-      admin: { email: 'admin@ecocycle.com', password: 'password123' },
+      admin: { email: 'admin@ecocycle.com', password: 'EcoAdmin@2026' },
       citizen: { email: 'meghana@example.com', password: 'password123' },
       user: { email: 'meghana@example.com', password: 'password123' }
     };
     const creds = demoAccounts[targetRole] || demoAccounts.citizen;
     try {
-      await login(creds.email, creds.password);
+      await login(creds.email, creds.password, targetRole);
     } catch {
       // Local fallback if offline
       const u = users.find(x => x.role === targetRole) || users[0];
@@ -439,6 +478,9 @@ export const EwasteProvider = ({ children }) => {
     // Actions
     login,
     register,
+    adminLogin,
+    citizenLogin,
+    citizenRegister,
     logout,
     createRequest,
     updateRequestStatus,

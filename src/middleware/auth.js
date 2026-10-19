@@ -23,14 +23,15 @@ function authenticateToken(req, res, next) {
   } catch (err) {
     return res.status(403).json({
       success: false,
-      message: 'Invalid or expired authentication token.',
+      message: 'Invalid or expired authentication token. Please sign in again.',
       error: err.message
     });
   }
 }
 
 /**
- * Middleware to restrict access to specific roles (e.g. 'admin', 'agent', etc.)
+ * Middleware to restrict access to specific roles (e.g. 'admin', 'citizen', etc.)
+ * Normalizes 'user' and 'citizen' so both are accepted for citizen routes.
  * @param  {...string} roles - Permitted roles
  */
 function requireRole(...roles) {
@@ -38,11 +39,14 @@ function requireRole(...roles) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required.'
+        message: 'Authentication required. Please sign in.'
       });
     }
 
-    if (!roles.includes(req.user.role)) {
+    const userRole = req.user.role === 'user' ? 'citizen' : req.user.role;
+    const normalizedRoles = roles.map(r => (r === 'user' ? 'citizen' : r));
+
+    if (!normalizedRoles.includes(userRole)) {
       return res.status(403).json({
         success: false,
         message: `Forbidden. Role '${req.user.role}' does not have permission to access this resource. Allowed roles: ${roles.join(', ')}`
@@ -51,6 +55,20 @@ function requireRole(...roles) {
 
     next();
   };
+}
+
+/**
+ * Specific middleware for Admin only
+ */
+function requireAdmin(req, res, next) {
+  return requireRole('admin')(req, res, next);
+}
+
+/**
+ * Specific middleware for Citizen only
+ */
+function requireCitizen(req, res, next) {
+  return requireRole('citizen')(req, res, next);
 }
 
 /**
@@ -77,6 +95,8 @@ function optionalAuth(req, res, next) {
 module.exports = {
   authenticateToken,
   requireRole,
+  requireAdmin,
+  requireCitizen,
   optionalAuth,
   JWT_SECRET
 };

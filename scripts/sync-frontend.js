@@ -66,8 +66,8 @@ async function apiRequest(endpoint, options = {}) {
 
 // 1. Authentication APIs
 export const authAPI = {
-  login: async (email, password) => {
-    const res = await apiRequest('/auth/login', {
+  adminLogin: async (email, password) => {
+    const res = await apiRequest('/auth/admin/login', {
       method: 'POST',
       body: { email, password }
     });
@@ -78,8 +78,45 @@ export const authAPI = {
     return res;
   },
 
+  citizenLogin: async (email, password) => {
+    const res = await apiRequest('/auth/citizen/login', {
+      method: 'POST',
+      body: { email, password }
+    });
+    if (res.token) {
+      localStorage.setItem('token', res.token);
+      localStorage.setItem('ewaste_currentUser', JSON.stringify(res.user));
+    }
+    return res;
+  },
+
+  citizenRegister: async (userData) => {
+    const res = await apiRequest('/auth/citizen/register', {
+      method: 'POST',
+      body: userData
+    });
+    if (res.token) {
+      localStorage.setItem('token', res.token);
+      localStorage.setItem('ewaste_currentUser', JSON.stringify(res.user));
+    }
+    return res;
+  },
+
+  login: async (email, password, portalType = null) => {
+    const endpoint = portalType === 'admin' ? '/auth/admin/login' : portalType === 'citizen' ? '/auth/citizen/login' : '/auth/login';
+    const res = await apiRequest(endpoint, {
+      method: 'POST',
+      body: { email, password, portalType }
+    });
+    if (res.token) {
+      localStorage.setItem('token', res.token);
+      localStorage.setItem('ewaste_currentUser', JSON.stringify(res.user));
+    }
+    return res;
+  },
+
   register: async (userData) => {
-    const res = await apiRequest('/auth/register', {
+    const res = await apiRequest('/auth/citizen/register', {
       method: 'POST',
       body: userData
     });
