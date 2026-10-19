@@ -1,0 +1,36 @@
+{
+  "name": "backend-my-website",
+  "version": "1.0.0",
+  "description": "EcoCycle E-Waste Management Portal Backend with Node.js and Microsoft SQL Server",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "node scripts/test-api.js",
+    "db:init": "sqlcmd -S localhost -E -d mywebsite -i src/database/schema.sql",
+    "db:seed": "sqlcmd -S localhost -E -d mywebsite -i src/database/seed.sql"
+  },
+  "keywords": [
+    "e-waste",
+    "recycling",
+    "nodejs",
+    "express",
+    "sql-server",
+    "mssql"
+  ],
+  "author": "EcoCycle Team",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "msnodesqlv8": "^5.6.0",
+    "mssql": "^11.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
